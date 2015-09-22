@@ -1,6 +1,6 @@
 __author__ = 'austin'
 
-#! /usr/bin/env python
+#! /usr/bin/env python3
 
 import os
 import socket
