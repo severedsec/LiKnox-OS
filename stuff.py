@@ -60,7 +60,8 @@ class Stuff:
     def do_math(self):
         start_time = time.time()  # assigns the current time to vairiable start_time
         a = float(self.number_1_entry.get())  # assigns the numbers entered into the boxes to variables
-        b = float(self.number_2_entry.get())  # the float part converts the number from a string to a floating point number.
+        b = int(self.number_2_entry.get())  # the float/int part converts to floating point or integer types
+                # try 1.0 + 1 and then try 1 + 1.0 and check the error. ints can only be whole numbers
         c = a + b  # does math and assigns answer to c
         self.number_label.config(text=c)  # puts c as the text in the answer box
         self.root.update_idletasks()  # pushes the new text config to the screen
