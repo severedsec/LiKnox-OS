@@ -39,13 +39,10 @@ class SnortListen:
         except OSError:
             pass
 
-        end_time = time.time()
-        print(Bcolors.WARNING + "init currently takes {} seconds".format(end_time - start_time) + Bcolors.ENDC)
-
-        try: # this shouldn't be needed once the run as root is added as that is the cause of the error
+        try:  # this shouldn't be needed once the run as root is added as that is the cause of the error
             self.snort_socket.bind(self.socket_path)  # creates a unix socket
         except OSError:
-            print(Bcolors.FAIL + 'FATAL ERROR: this is most likely because you are not root' + Bcolors.ENDC)
+            print(Bcolors.FAIL + 'Fatal Error: are you root?' + Bcolors.ENDC)
             exit(1)
 
         # connects to database and all needed tables
@@ -53,6 +50,9 @@ class SnortListen:
         self.table = self.database['logs']
         # once socket is made initiate the snort instance to listen to
         # subprocess.Popen(snort ....)
+
+        end_time = time.time()
+        print(Bcolors.WARNING + "init currently takes {} seconds".format(end_time - start_time) + Bcolors.ENDC)
 
         self.mainloop()
 
@@ -127,6 +127,8 @@ class SnortListen:
             # send to alter iptables rules to ban excessive use ips and other such things
             pass
 
+    def clean_exit(self):  # todo keep track of PIDs of all forked processes so that we can close everything on exit
+        exit(0)  # this is not a clean exit, all subprocesses will continue running
 class Configurator:
     """
     static methods used to handle config files for snort and the snortlisten class
@@ -135,12 +137,15 @@ class Configurator:
     def get_variable(variable):
         config = open('snortlisten.conf')
         for line in config.readlines():
-            if variable in line:
-                line = ''.join(line.split())
-                ignore, result = line.split("=", 1)
-                return result
-            else:
+            if line.startswith('#'):
                 pass
+            else:
+                if variable in line:
+                    line = ''.join(line.split())
+                    ignore, result = line.split("=", 1)
+                    return result
+                else:
+                    pass
 
 class Bcolors:
     HEADER    = '\033[95m'
