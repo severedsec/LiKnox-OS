@@ -72,7 +72,7 @@ class SnortListen:
         transdr = offset to transport layer header 4
         data    = offset to data(pkt body)?
         val     = seems to always be 0?
-        pkt     = the packet raising the alert decode to UTF-8 may need further work as there are odd unicode characters
+        pkt     = the packet raising the alert de#code to UTF-8 may need further work as there are odd unicode characters
         """
         # This format does NOT include the 'Event' struct which is the last element
         # of the _AlertPkt struct in src/output-plugins/spo_alert_unixsock.h
