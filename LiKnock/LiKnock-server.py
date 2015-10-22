@@ -2,7 +2,6 @@ __author__ = 'austin'
 
 import subprocess
 import time
-import iptc
 import os
 
 if os.getuid() != 0:
@@ -22,6 +21,10 @@ class LiKnockServer:
         self.last_knock_time = {10: None, 11: None}
         self.client_ip = {10: None, 11: None}
         self.average_time = []
+        if os.getuid() == 0:
+            self.start_iptables()
+        else:
+            print('not root: no iptables settings will change')
         self.log_watch = subprocess.Popen(['tail', '-f', '/var/log/firewall.log'], stdout=subprocess.PIPE)
         self.main()
 
@@ -81,17 +84,23 @@ class LiKnockServer:
     # todo: replace with subprocess, its easier to read, less code, and allows setting LOG options at init
 
     @staticmethod
-    def open_the_gates(port, address):
-        table = iptc.Table(iptc.Table.FILTER)
-        chain = iptc.Chain(table, "INPUT")
-        rule = iptc.Rule()
-        rule.protocol = 'tcp'
-        match = iptc.Match(rule, 'tcp')
-        match.dport = port
-        rule.add_match(match)
-        rule.src = address
-        rule.target = iptc.Target(rule, "ACCEPT")
-        chain.insert_rule(rule)
+    def open_the_gates(port, address):  # todo add logging for separate process to handle timeouts using netstat
+        subprocess.Popen(['sudo', 'iptables', '-I', 'INPUT', '-i', 'eth0', '-p', 'tcp', '-s', address, '--dport', port,
+                          '-m', 'state', '--state', 'NEW,ESTABLISHED', '-j', 'ACCEPT'])
+        subprocess.Popen(['sudo', 'iptables', '-I', 'OUTPUT', '-o', 'eth0', '-p', 'tcp', '--sport', port,
+                          '-m', 'state', '--state', 'ESTABLISHED', '-j', 'ACCEPT'])
+
+    @staticmethod
+    def start_iptables():  # have check for kern log kern.warn to separate file and check that that file exists
+        subprocess.Popen(['sudo', 'iptables', '-F'])  # flushes the current iptables ruleset
+
+        # these create an implicit deny
+        # subprocess.Popen(['sudo', 'iptables', '-P', 'INPUT', 'DROP'])
+        # subprocess.Popen(['sudo', 'iptables', '-P', 'FORWARD', 'DROP'])
+        # subprocess.Popen(['sudo', 'iptables', '-P', 'OUTPUT', 'DROP'])
+
+        subprocess.Popen(['sudo', 'iptables', '-A', 'INPUT', '-p', 'udp', '-j', 'LOG',
+                          '--log-prefix', "'iptables: '", '--log-level', '4'])  # sets logging of all UDP traffic to kern.warn
 
 def main():
     LiKnockServer()

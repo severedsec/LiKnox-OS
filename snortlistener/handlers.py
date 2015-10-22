@@ -1,12 +1,5 @@
 __author__ = 'austin'
 
-import os
-import time
-import pickle
-import socket
-import sys
-import subprocess
-from netaddr import *
 import nmap
 import json
 
