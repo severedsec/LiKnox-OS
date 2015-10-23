@@ -81,8 +81,6 @@ class LiKnockServer:
                                 if os.getuid == 0:
                                     self.open_the_gates(22, packet_src)
 
-    # todo: replace with subprocess, its easier to read, less code, and allows setting LOG options at init
-
     @staticmethod
     def open_the_gates(port, address):  # todo add logging for separate process to handle timeouts using netstat
         subprocess.Popen(['sudo', 'iptables', '-I', 'INPUT', '-i', 'eth0', '-p', 'tcp', '-s', address, '--dport', port,
